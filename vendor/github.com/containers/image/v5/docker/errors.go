@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/docker/distribution/registry/client"
-	perrors "github.com/pkg/errors"
 )
 
 var (
@@ -42,7 +41,7 @@ func httpResponseToError(res *http.Response, context string) error {
 		if context != "" {
 			context = context + ": "
 		}
-		return perrors.Errorf("%sinvalid status code from registry %d (%s)", context, res.StatusCode, http.StatusText(res.StatusCode))
+		return fmt.Errorf("%sinvalid status code from registry %d (%s)", context, res.StatusCode, http.StatusText(res.StatusCode))
 	}
 }
 
@@ -55,7 +54,8 @@ func registryHTTPResponseToError(res *http.Response) error {
 		if len(response) > 50 {
 			response = response[:50] + "..."
 		}
-		err = fmt.Errorf("StatusCode: %d, %s", e.StatusCode, response)
+		// %.0w makes e visible to error.Unwrap() without including any text
+		err = fmt.Errorf("StatusCode: %d, %s%.0w", e.StatusCode, response, e)
 	}
 	return err
 }
